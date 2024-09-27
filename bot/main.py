@@ -1,10 +1,14 @@
 from aiogram import Bot, Dispatcher, Router, types
 from aiogram.filters import Command
 from aiogram.client.session.base import BaseSession
+from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 import pygsheets
 
 import json
+
+from keyboards import *
+from filters import *
 
 
 class AccauntingBot(Bot):
@@ -25,20 +29,49 @@ class AccauntingBot(Bot):
 
         self.router.message.register(self.start, Command('start'))
 
+        self.router.callback_query.register(self.show_all, AllGoods.filter())
+
     async def start(self, message: types.Message):
         await self.set_my_commands(self.default_commands)
-        await message.answer(text=f"Привет, <b>{message.from_user.first_name}</b>!", parse_mode='html')
+        with open('info.json', 'r', encoding='utf-8') as file:
+            data = json.load(file)
+            markup = default_markup(str(message.from_user.id))
+            if str(message.from_user.id) in data.get('developer'):
+                markup = developer_markup(str(message.from_user.id))
+            elif str(message.from_user.id) in data.get('admins'):
+                markup = admin_markup(str(message.from_user.id))
+            await message.answer(text=f"Здравствуйте, <b>{message.from_user.first_name}</b>! Это бот, который помогает вести учет одежды. \nВыберите действие:", parse_mode='html', reply_markup=markup)
 
-        self.worksht.update_value('A13', 'test')
+    async def show_all(self, query: types.callback_query.CallbackQuery, callback_data: AllGoods):
         data = self.worksht.get_all_records()
-        target_value = '#qu'
-        for idx, row in enumerate(data, 2):
-            # print(row)
-            if row['Арктикул'] == target_value:
-                await message.answer(text=f"Строка найдена: {idx} : {row}")
-                break
+        text = "```\n"
+
+        if (len(data) == 0):
+            text = "Данных в таблице нет."
         else:
-            await message.answer(text="Строка с заданным значением не найдена")
+            for key in data[0].keys():
+                text += key + " ┃ "
+            text = text[:-3:] + "\n"
+            for row in data:
+                for key, value in row.items():
+                    spaces = (10 - len(value)) if key == "Арктикул" else 1
+                    text += str(value) + (' ' * spaces)
+                text += "\n"
+        text += "\n```"
+
+        await query.message.answer(
+            text=text, parse_mode="markdown", reply_markup=InlineKeyboardBuilder().as_markup())
+
+        with open('info.json', 'r', encoding='utf-8') as file:
+            data = json.load(file)
+            markup = default_markup(callback_data.user_id)
+            if callback_data.user_id in data.get('developer'):
+                markup = developer_markup(callback_data.user_id)
+            elif callback_data.user_id in data.get('admins'):
+                markup = admin_markup(callback_data.user_id)
+            await query.message.answer(
+                text="Выберите действие:", reply_markup=markup)
+        await query.message.delete()
 
 
 if __name__ == '__main__':
