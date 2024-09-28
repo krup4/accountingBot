@@ -1,4 +1,4 @@
-from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 from aiogram.types import InlineKeyboardButton
 
 from filters import *
@@ -25,7 +25,7 @@ def admin_markup(user_id):
     markup.row(InlineKeyboardButton(
         text='Посмотреть конкретный товар', callback_data=OneGood(user_id=user_id).pack()))
     markup.row(InlineKeyboardButton(
-        text='Добавить товар', callback_data=AddGood(user_id=user_id).pack()))
+        text='Добавить товар', callback_data=AddOne(user_id=user_id).pack()))
     markup.row(InlineKeyboardButton(text='Удалить товар',
                callback_data=DeleteGood(user_id=user_id).pack()))
 
@@ -40,11 +40,20 @@ def developer_markup(user_id):
     markup.row(InlineKeyboardButton(
         text='Посмотреть конкретный товар', callback_data=OneGood(user_id=user_id).pack()))
     markup.row(InlineKeyboardButton(
-        text='Добавить товар', callback_data=AddGood(user_id=user_id).pack()))
+        text='Добавить товар', callback_data=AddOne(user_id=user_id).pack()))
     markup.row(InlineKeyboardButton(text='Удалить товар',
                callback_data=DeleteGood(user_id=user_id).pack()))
     markup.row(InlineKeyboardButton(text='Добавить админа',
                callback_data=AddAdmin(user_id=user_id).pack()))
+
+    return markup.as_markup()
+
+
+def sizes_markup():
+    markup = ReplyKeyboardBuilder()
+
+    markup.button(text="S").button(text="M").button(
+        text="L").button(text="XL").button(text="XXL")
 
     return markup.as_markup()
 
