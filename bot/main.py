@@ -134,9 +134,11 @@ class AccauntingBot(Bot):
         data = self.worksht.get_all_records()
         idx = 0
         last = 0
+        num = 0
         for i, row in enumerate(data, 2):
             if row.get('Артикул') == good.get('article'):
                 idx = i
+                num = row.get(good.get('size'))
                 break
             last = i
 
@@ -151,7 +153,7 @@ class AccauntingBot(Bot):
             self.worksht.insert_rows(row=last, values=writing)
         else:
             sizes = {"S": "B", "M": 'C', "L": 'D', "XL": 'E', "XXL": 'F'}
-            self.worksht.update_value(f"{sizes[good.get("size")]}{idx}", good.get("amount"))
+            self.worksht.update_value(f"{sizes[good.get("size")]}{idx}", good.get("amount") + num)
         
         await message.answer(text="Успешно добавлено!")
         markup = get_keyboard(good.get("user_id"))
