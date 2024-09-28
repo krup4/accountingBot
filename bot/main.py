@@ -2,6 +2,7 @@ from aiogram import Bot, Dispatcher, Router, types
 from aiogram.filters import Command
 from aiogram.client.session.base import BaseSession
 from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.fsm.context import FSMContext
 
 import pygsheets
 
@@ -9,6 +10,7 @@ import json
 
 from keyboards import *
 from filters import *
+from states import *
 
 
 class AccauntingBot(Bot):
@@ -28,19 +30,16 @@ class AccauntingBot(Bot):
         ]
 
         self.router.message.register(self.start, Command('start'))
+        self.router.message.register(self.get_one, GetArticle.article)
 
         self.router.callback_query.register(self.show_all, AllGoods.filter())
+        self.router.callback_query.register(
+            self.get_article_one, OneGood.filter())
 
     async def start(self, message: types.Message):
         await self.set_my_commands(self.default_commands)
-        with open('info.json', 'r', encoding='utf-8') as file:
-            data = json.load(file)
-            markup = default_markup(str(message.from_user.id))
-            if str(message.from_user.id) in data.get('developer'):
-                markup = developer_markup(str(message.from_user.id))
-            elif str(message.from_user.id) in data.get('admins'):
-                markup = admin_markup(str(message.from_user.id))
-            await message.answer(text=f"Здравствуйте, <b>{message.from_user.first_name}</b>! Это бот, который помогает вести учет одежды. \nВыберите действие:", parse_mode='html', reply_markup=markup)
+        markup = get_keyboard(str(message.from_user.id))
+        await message.answer(text=f"Здравствуйте, <b>{message.from_user.first_name}</b>! Это бот, который помогает вести учет одежды. \nВыберите действие:", parse_mode='html', reply_markup=markup)
 
     async def show_all(self, query: types.callback_query.CallbackQuery, callback_data: AllGoods):
         data = self.worksht.get_all_records()
@@ -62,16 +61,44 @@ class AccauntingBot(Bot):
         await query.message.answer(
             text=text, parse_mode="markdown", reply_markup=InlineKeyboardBuilder().as_markup())
 
-        with open('info.json', 'r', encoding='utf-8') as file:
-            data = json.load(file)
-            markup = default_markup(callback_data.user_id)
-            if callback_data.user_id in data.get('developer'):
-                markup = developer_markup(callback_data.user_id)
-            elif callback_data.user_id in data.get('admins'):
-                markup = admin_markup(callback_data.user_id)
-            await query.message.answer(
-                text="Выберите действие:", reply_markup=markup)
+        markup = get_keyboard(callback_data.user_id)
+        await query.message.answer(
+            text="Выберите действие:", reply_markup=markup)
         await query.message.delete()
+
+    async def get_article_one(self, query: types.callback_query.CallbackQuery, callback_data: AllGoods, state: FSMContext):
+        await state.set_state(GetArticle.article)
+        await state.set_data({"user_id": callback_data.user_id})
+        await query.message.edit_text(text="Введите артикул:", reply_markup=InlineKeyboardBuilder().as_markup())
+
+    async def get_one(self, message: types.Message, state: FSMContext):
+        state_data = await state.get_data()
+        user_id = state_data.get('user_id')
+        await state.clear()
+
+        data = self.worksht.get_all_records()
+
+        text = "```\n"
+
+        if (len(data) == 0):
+            text = "Данных в таблице нет."
+        else:
+            for key in data[0].keys():
+                text += key + " ┃ "
+            text = text[:-3:] + "\n"
+            for row in data:
+                if row.get('Артикул') == message.text:
+                    for key, value in row.items():
+                        spaces = (10 - len(value)) if key == "Арктикул" else 1
+                        text += str(value) + (' ' * spaces)
+        text += "\n```"
+
+        await message.answer(
+            text=text, parse_mode="markdown", reply_markup=InlineKeyboardBuilder().as_markup())
+
+        markup = get_keyboard(user_id)
+        await message.answer(
+            text="Выберите действие:", reply_markup=markup)
 
 
 if __name__ == '__main__':
