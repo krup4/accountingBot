@@ -34,7 +34,8 @@ class AccauntingBot(Bot):
         self.router.message.register(self.get_one, GetArticle.article)
         self.router.message.register(self.choose_size, AddGood.article)
         self.router.message.register(self.get_amount, AddGood.size)
-        self.router.message.register(self.write_good, AddGood.amount)
+        self.router.message.register(self.update_good, AddGood.amount)
+        self.router.message.register(self.add_new, AddGood.address)
 
         self.router.callback_query.register(self.show_all, AllGoods.filter())
         self.router.callback_query.register(
@@ -54,14 +55,23 @@ class AccauntingBot(Bot):
             text = "Данных в таблице нет."
         else:
             for key in data[0].keys():
-                text += key + " ┃ "
+                num = (15 - len(str(key))
+                       ) if key == "Артикул" else (6 - len(str(key)))
+                text += key + (" " * num)
+                text += "┃ "
+
             text = text[:-3:] + "\n"
+
             for row in data:
                 for key, value in row.items():
-                    spaces = (10 - len(value)) if key == "Арктикул" else 1
-                    text += str(value) + (' ' * spaces)
+                    spaces = (
+                        15 - len(str(value))) if key == "Артикул" else (6 - len(str(value)))
+                    text += str(value) + (' ' * spaces) + "┃ "
+
+                text = text[:-4:]
                 text += "\n"
-        text += "\n```"
+
+            text += "\n```"
 
         await query.message.answer(
             text=text, parse_mode="markdown", reply_markup=InlineKeyboardBuilder().as_markup())
@@ -86,17 +96,27 @@ class AccauntingBot(Bot):
         text = "```\n"
 
         if (len(data) == 0):
-            text = "Данных в таблице нет."
+            text += "Данных в таблице нет."
         else:
             for key in data[0].keys():
-                text += key + " ┃ "
+                num = (15 - len(str(key))
+                       ) if key == "Артикул" else (6 - len(str(key)))
+                text += key + (" " * num)
+                text += "┃ "
+
             text = text[:-3:] + "\n"
+
             for row in data:
                 if row.get('Артикул') == message.text:
                     for key, value in row.items():
-                        spaces = (10 - len(value)) if key == "Арктикул" else 1
-                        text += str(value) + (' ' * spaces)
-        text += "\n```"
+                        spaces = (
+                            15 - len(str(value))) if key == "Артикул" else (6 - len(str(value)))
+                        text += str(value) + (' ' * spaces) + "┃ "
+
+                    text = text[:-4:]
+                    text += "\n"
+
+            text += "\n```"
 
         await message.answer(
             text=text, parse_mode="markdown", reply_markup=InlineKeyboardBuilder().as_markup())
@@ -126,7 +146,7 @@ class AccauntingBot(Bot):
         await state.set_data(good)
         await message.answer(text="Введите количество: ", reply_markup=ReplyKeyboardRemove())
 
-    async def write_good(self, message: types.Message, state: FSMContext):
+    async def update_good(self, message: types.Message, state: FSMContext):
         good = await state.get_data()
         await state.clear()
         good["amount"] = int(message.text)
@@ -143,19 +163,35 @@ class AccauntingBot(Bot):
             last = i
 
         if idx == 0:
-            sizes = {"S": 0, "M": 1, "L": 2, "XL": 3, "XXL": 4}
-            writing = [good.get('article')]
-            for i in range(5):
-                if i == sizes[good.get("size")]:
-                    writing.append(good.get("amount"))
-                else:
-                    writing.append(0)
-            self.worksht.insert_rows(row=last, values=writing)
+            good['row'] = last
+            await state.set_state(AddGood.address)
+            await state.set_data(good)
+            await message.answer(text="Походу, данного товара в таблице нет. Чтобы его добавить, введите адрес: ")
         else:
             sizes = {"S": "B", "M": 'C', "L": 'D', "XL": 'E', "XXL": 'F'}
-            self.worksht.update_value(f"{sizes[good.get("size")]}{idx}", good.get("amount") + num)
-        
-        await message.answer(text="Успешно добавлено!")
+            self.worksht.update_value(f"{sizes[good.get("size")]}{
+                                      idx}", good.get("amount") + num)
+            await message.answer(text="Товар успешно обновлен!")
+            markup = get_keyboard(good.get("user_id"))
+            await message.answer(text="Выберите действие: ", reply_markup=markup)
+
+    async def add_new(self, message: types.Message, state: FSMContext):
+        good = await state.get_data()
+        await state.clear()
+        good["address"] = message.text
+
+        writing = [good.get('article')]
+        sizes = {"S": 0, "M": 1, "L": 2, "XL": 3, "XXL": 4}
+        for i in range(5):
+            if i == sizes[good.get("size")]:
+                writing.append(good.get("amount"))
+            else:
+                writing.append(0)
+        writing.append(good.get("address"))
+
+        self.worksht.insert_rows(row=good.get('row'), values=writing)
+
+        await message.answer(text="Товар успешно добавлен!")
         markup = get_keyboard(good.get("user_id"))
         await message.answer(text="Выберите действие: ", reply_markup=markup)
 
