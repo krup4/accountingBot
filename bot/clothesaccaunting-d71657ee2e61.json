@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "clothesaccaunting",
+  "private_key_id": "d71657ee2e6138adb6485315e0faef6db260a4ef",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDGKlQl1FcIM2eL\n1SdJw0Ypd7wSaBPUizJxQFKVoru9uOGKG7Z8wTbjmTkxnww09zOpbCzHyOS1A5ZG\nqlybjYL57yjbN0+kJ1uWHfrSd4TP5RnoIO8iOviHhq4xMw5ZHSCbAGmnBHf2UJLI\ntIXZ/ZTkbEpOEA+a79E01gWrHC1ZdaIs6+AdPSaNa8Ka28ZP4grt7iuZHoCLv8Ge\nu1Iq+KCeczILDpi7INDDHy4dffRinyP+pPbw/C+IABTasckxAbY46G04UgZ383Uh\nHztEw9tH7NGLxGgxD/Ytv+R/Y8sE5v0n+i6JqrWnJ97/EuHmE27vcJajbcoFv6nY\nsWj+V12HAgMBAAECggEADqQN94WKsJZrrg8fifmdc27fPFToMinenjNsZpXRXSEN\nuNB3WRxFW+d0LFBd7IPfE0Nkw5X6H82WCr6HfQ6lgKXE1P1vKuelgp/QakBeVaXN\nljLouBS3S/wNXqExDDB0uj77j1VrL42gaqe7w/FSUNYXX1EcdgwF3ut5G71HNHa1\nLZl+hAo8hCaCDycf+DoiTETN710bLZUf7utKDhwkdQV3Tu26697lqa/8sraYMBk+\nRMVMj2lJMB3uFvef8dYKGK2SwnVtCeRFwRfQaN2OC/6/DMrL4s6Y3XnJ8MdtjKX7\n3wr3uQuB8awQgTPVnIqEqOhFFuzN6u1xx5TIrI1qgQKBgQDkjb5MrqQQu+QEegyv\nDNYuCsYoQjp2+9ufOXQB6/qeUmgsQRKvegmxs7eRPSrok/4n+HdST2WId1iq5E27\nctPfV0q5Mq8AlnScecX/vEZxfFuqp4Vst/NJa8djqX2JZKM1+LyFyjlenjKaHLEB\nhRPtACdRmkNuTd3zNzZ7zXeJ5wKBgQDd9mEQ3bFFRqM5cMroWNLXJ++JTg8mtdYY\nqkNZejJtPu9oG4++34AlsOPxv+Ywx64TtaBNW2JieG7U0dHD266Hv7DEMuJjf4J1\n0ar/OYC/rlcmfjay2YXMlP77/omcB+qBPDPj9lz8PxjlA/18Hb1bDV+UzrIxA08e\nTxPrvuFbYQKBgFIri8FyAFZr1tytLKY6zT4cbYXH2dExV5J1S3ntZ1tIcV+HvboM\n/DNBU7wJ68VWf8fLEssq9GwNzHkUP8Ym0Hm5nona6QQjE6W2OjNpc0IV3bcLJ3Mg\n53z8HOF97D5bSjp7RPws6ldUNQknS5QqTjGlHn2+IoQjxqpMrW/xPQr9AoGBANli\nKHR1Ot2HLerevcrK20ufMCkASzR1WAZ2Eln6pJJ71crXW3PrvryrPsOQVuilV6az\n9hhtDLE2FA3YpKE2cPtAUOYGk9QwmFu9icRG1AJmw7HOYNHO2gygTA4On0UyN4h0\nprl3ml/th/sbalH5am9XbKn3uWrpO76KYg87tchhAoGBALjrsA+N2g3QlemjyBHS\npuDuP3NoStdi3j6In0TGCporxwz5FQKFPxieXzI7EXViwHqHIZ97CfS013t+4dqN\nb23DC8VRuRUXto4e0Efpf+pYZMAGglUfG6WUtTBc2eLBrZkhi6FlnKqNTGMJC4sM\nxYrtJhTm4nwrZETReCe4bcnA\n-----END PRIVATE KEY-----\n",
+  "client_email": "accauntingbot-839@clothesaccaunting.iam.gserviceaccount.com",
+  "client_id": "109049069918984515349",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/accauntingbot-839%40clothesaccaunting.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}
