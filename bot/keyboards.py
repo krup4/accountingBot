@@ -28,6 +28,8 @@ def admin_markup(user_id):
         text='Добавить товар', callback_data=AddOne(user_id=user_id).pack()))
     markup.row(InlineKeyboardButton(text='Удалить товар',
                callback_data=DeleteGood(user_id=user_id).pack()))
+    markup.row(InlineKeyboardButton(text="Изменить адрес",
+               callback_data=EditAddress(user_id=user_id).pack()))
 
     return markup.as_markup()
 
@@ -45,6 +47,8 @@ def developer_markup(user_id):
                callback_data=DeleteGood(user_id=user_id).pack()))
     markup.row(InlineKeyboardButton(text='Добавить админа',
                callback_data=AddAdmin(user_id=user_id).pack()))
+    markup.row(InlineKeyboardButton(text="Изменить адрес",
+               callback_data=EditAddress(user_id=user_id).pack()))
 
     return markup.as_markup()
 
@@ -54,6 +58,14 @@ def sizes_markup():
 
     markup.button(text="S").button(text="M").button(
         text="L").button(text="XL").button(text="XXL")
+
+    return markup.as_markup()
+
+
+def agree_markup(user_id):
+    markup = InlineKeyboardBuilder()
+    markup.row(InlineKeyboardButton(text="Удалить целиком", callback_data=DeleteAll(user_id=user_id).pack()),
+               InlineKeyboardButton(text="Удалить несколько штук", callback_data=DeleteOne(user_id=user_id).pack()))
 
     return markup.as_markup()
 

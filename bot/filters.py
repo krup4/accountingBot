@@ -23,3 +23,15 @@ class AddAdmin(CallbackData, prefix="add_admin"):
 
 class Sizes(CallbackData, prefix="sizes"):
     size: str
+
+
+class DeleteAll(CallbackData, prefix="delete_all"):
+    user_id: str
+
+
+class DeleteOne(CallbackData, prefix="delete_one"):
+    user_id: str
+
+
+class EditAddress(CallbackData, prefix="edit_address"):
+    user_id: str

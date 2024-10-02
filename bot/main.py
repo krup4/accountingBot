@@ -36,11 +36,28 @@ class AccauntingBot(Bot):
         self.router.message.register(self.get_amount, AddGood.size)
         self.router.message.register(self.update_good, AddGood.amount)
         self.router.message.register(self.add_new, AddGood.address)
+        self.router.message.register(self.add_admin, Admin.admin)
+        self.router.message.register(self.delete_all, DeleteArticle.article)
+        self.router.message.register(
+            self.delete_choose_size, DeleteOneState.article)
+        self.router.message.register(
+            self.delete_get_amount, DeleteOneState.size)
+        self.router.message.register(self.delete_one, DeleteOneState.amount)
+        self.router.message.register(self.edit_new_address, EditAddressState.article)
+        self.router.message.register(self.edit_address, EditAddressState.address)
 
         self.router.callback_query.register(self.show_all, AllGoods.filter())
         self.router.callback_query.register(
             self.get_article_one, OneGood.filter())
         self.router.callback_query.register(self.article_add, AddOne.filter())
+        self.router.callback_query.register(self.get_admin, AddAdmin.filter())
+        self.router.callback_query.register(
+            self.delete_agree, DeleteGood.filter())
+        self.router.callback_query.register(
+            self.delete_all_article, DeleteAll.filter())
+        self.router.callback_query.register(
+            self.delete_one_article, DeleteOne.filter())
+        self.router.callback_query.register(self.edit_address_article, EditAddress.filter())
 
     async def start(self, message: types.Message):
         await self.set_my_commands(self.default_commands)
@@ -60,7 +77,7 @@ class AccauntingBot(Bot):
                 text += key + (" " * num)
                 text += "┃ "
 
-            text = text[:-3:] + "\n"
+            text = text[:-3:] + "\n\n"
 
             for row in data:
                 for key, value in row.items():
@@ -104,7 +121,7 @@ class AccauntingBot(Bot):
                 text += key + (" " * num)
                 text += "┃ "
 
-            text = text[:-3:] + "\n"
+            text = text[:-3:] + "\n\n"
 
             for row in data:
                 if row.get('Артикул') == message.text:
@@ -125,7 +142,7 @@ class AccauntingBot(Bot):
         await message.answer(
             text="Выберите действие:", reply_markup=markup)
 
-    async def article_add(self, query: types.callback_query.CallbackQuery, callback_data: AllGoods, state: FSMContext):
+    async def article_add(self, query: types.callback_query.CallbackQuery, callback_data: AddOne, state: FSMContext):
         await query.message.edit_text(text="Введите артикул:", reply_markup=InlineKeyboardBuilder().as_markup())
         await state.set_state(AddGood.article)
         await state.set_data({"user_id": callback_data.user_id})
@@ -193,6 +210,137 @@ class AccauntingBot(Bot):
 
         await message.answer(text="Товар успешно добавлен!")
         markup = get_keyboard(good.get("user_id"))
+        await message.answer(text="Выберите действие: ", reply_markup=markup)
+
+    async def get_admin(self, query: types.callback_query.CallbackQuery, callback_data: AddAdmin, state: FSMContext):
+        await state.set_state(Admin.admin)
+        await state.set_data({"user_id": callback_data.user_id})
+        await query.message.edit_text(text='Введите id пользователя: \n(Для этого нужно у бота @username_to_id_bot нажать кнопку "User" и выбрать пользователя, которого вы хотите добавить в администраторы. Затем надо скопировать этот id и прислать сюда) ', reply_markup=InlineKeyboardBuilder().as_markup())
+
+    async def add_admin(self, message: types.Message, state: FSMContext):
+        user = await state.get_data()
+        await state.clear()
+        with open('info.json', 'r') as f:
+            data = json.load(f)
+
+        data['admins'].append(message.text)
+
+        with open('info.json', 'w') as f:
+            json.dump(data, f, indent=4)
+
+        await message.answer(text="Админ успешно добавлен!")
+        markup = get_keyboard(user.get("user_id"))
+        await message.answer(text="Выберите действие: ", reply_markup=markup)
+
+    async def delete_agree(self, query: types.callback_query.CallbackQuery, callback_data: DeleteGood):
+        await query.message.edit_text(text="Вы хотите удалить товар целиком или только несколько штук?", reply_markup=agree_markup(callback_data.user_id))
+
+    async def delete_all_article(self, query: types.callback_query.CallbackQuery, callback_data: DeleteAll, state: FSMContext):
+        await query.message.edit_text(text="Введите артикул:", reply_markup=InlineKeyboardBuilder().as_markup())
+        await state.set_state(DeleteArticle.article)
+        await state.set_data({"user_id": callback_data.user_id})
+
+    async def delete_all(self, message: types.Message, state: FSMContext):
+        user = await state.get_data()
+        await state.clear()
+        data = self.worksht.get_all_records()
+
+        flag = False
+        for i, row in enumerate(data, 2):
+            if row.get("Артикул") == message.text:
+                self.worksht.delete_rows(i)
+                flag = True
+                break
+
+        if flag:
+            await message.answer(text="Успешно удалено!")
+        else:
+            await message.answer(text="Данного артикула нет в таблице!")
+
+        markup = get_keyboard(user.get("user_id"))
+        await message.answer(text="Выберите действие: ", reply_markup=markup)
+
+    async def delete_one_article(self, query: types.callback_query.CallbackQuery, callback_data: DeleteOne, state: FSMContext):
+        await query.message.edit_text(text="Введите артикул:", reply_markup=InlineKeyboardBuilder().as_markup())
+        await state.set_state(DeleteOneState.article)
+        await state.set_data({"user_id": callback_data.user_id})
+
+    async def delete_choose_size(self, message: types.Message, state: FSMContext):
+        good = await state.get_data()
+        await state.clear()
+        await state.set_state(DeleteOneState.size)
+        good["article"] = message.text
+        await state.set_data(good)
+        await message.answer(text="Выберите размер: ", reply_markup=sizes_markup())
+
+    async def delete_get_amount(self, message: types.Message, state: FSMContext):
+        good = await state.get_data()
+        await state.clear()
+        await state.set_state(DeleteOneState.amount)
+        good['size'] = message.text
+        await state.set_data(good)
+        await message.answer(text="Введите количество: ", reply_markup=ReplyKeyboardRemove())
+
+    async def delete_one(self, message: types.Message, state: FSMContext):
+        good = await state.get_data()
+        await state.clear()
+        good['amount'] = int(message.text)
+        
+        data = self.worksht.get_all_records()
+        idx = 0
+        num = 0
+        for i, row in enumerate(data, 2):
+            if row.get('Артикул') == good.get('article'):
+                idx = i
+                num = row.get(good.get('size'))
+                break
+
+        if idx == 0:
+            await message.answer(text="Данного артикула нет в таблице!")
+        elif num - good.get("amount") < 0:
+            await message.answer(text="Товар не может быть обновлен, так как в наличии товара меньше, чем указанное значение!")
+        else:
+            sizes = {"S": "B", "M": 'C', "L": 'D', "XL": 'E', "XXL": 'F'}
+            self.worksht.update_value(f"{sizes[good.get("size")]}{idx}", num - good.get("amount"))
+            await message.answer(text="Товар успешно обновлен!")
+        
+        markup = get_keyboard(good.get("user_id"))
+        await message.answer(text="Выберите действие: ", reply_markup=markup)
+
+    async def edit_address_article(self, query: types.callback_query.CallbackQuery, callback_data: EditAddress, state: FSMContext):
+        await state.set_state(EditAddressState.article)
+        await state.set_data({"user_id": callback_data.user_id})
+        await query.message.edit_text(text="Введите артикул: ", reply_markup=InlineKeyboardBuilder().as_markup())
+
+    async def edit_new_address(self, message: types.Message, state: FSMContext):
+        good = await state.get_data()
+        await state.clear()
+        good["article"] = message.text
+
+        data = self.worksht.get_all_records()
+        idx = -1
+        adress = ""
+        for i, row in enumerate(data, 2):
+            if row.get('Артикул') == good.get("article"):
+                idx = i
+                adress = row.get('Адрес')
+
+        if idx == -1:
+            await message.answer(text="Данного артикула нет в таблице!")
+            markup = get_keyboard(good.get('user_id'))
+            await message.answer(text="Выберите действие: ", reply_markup=markup)
+        else:
+            good['row'] = idx
+            await state.set_state(EditAddressState.address)
+            await state.set_data(good)
+            await message.answer(text=f"Введите адрес: \n (Сейчас адрес такой: {adress})")
+
+    async def edit_address(self, message: types.Message, state: FSMContext):
+        good = await state.get_data()
+        await state.clear()
+        self.worksht.update_value(f"G{good.get('row')}", message.text)
+        await message.answer(text="Адрес успешно обновлен!")
+        markup = get_keyboard(good.get('user_id'))
         await message.answer(text="Выберите действие: ", reply_markup=markup)
 
 
